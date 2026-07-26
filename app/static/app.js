@@ -90,7 +90,7 @@ if (uploadForm) {
 
   slider.addEventListener('input', () => {
     const min = parseFloat(slider.value);
-    scoreVal.textContent = min.toFixed(2);
+    scoreVal.textContent = min.toString();
 
     tbody.querySelectorAll('tr').forEach(row => {
       const score = parseFloat(row.dataset.score ?? '0');

@@ -87,9 +87,9 @@ def score_class(score) -> str:
     """CSS-класс для цветового кодирования балла."""
     if score is None:
         return "score-unknown"
-    if float(score) >= 0.7:
+    if float(score) >= 70:
         return "score-high"
-    if float(score) >= 0.4:
+    if float(score) >= 40:
         return "score-mid"
     return "score-low"
 
@@ -171,7 +171,7 @@ async def upload(request: Request, file: Annotated[UploadFile, File()]):
 
 
 @app.get("/results", response_class=HTMLResponse)
-async def results(request: Request, sid: str = "", warn: str = "", min_score: float = 0.0):
+async def results(request: Request, sid: str = "", warn: str = "", min_score: int = 0):
     records = _session_get(sid) if sid else None
     if records is None:
         return RedirectResponse(url="/?error=Сессия не найдена — загрузите файл заново")

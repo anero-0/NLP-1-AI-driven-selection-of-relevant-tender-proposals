@@ -81,7 +81,7 @@ def _score_v0(record: dict, keywords: list[str]) -> float:
         deadline_penalty = -0.1
 
     total = kw_score + price_score + region_score + trade_score + deadline_penalty
-    return round(max(0.0, min(1.0, total)), 4)
+    return int(round(max(0.0, min(1.0, total)) * 100))
 
 
 # ---------------------------------------------------------------------------
@@ -195,8 +195,8 @@ def score_records(records: list[dict]) -> list[dict]:
                     # Нормируем от 0.0 до 0.5
                     scaled_score = 0.5 * (prob / threshold)
                 
-                record["score"] = round(float(scaled_score), 4)
-                record["raw_prob"] = round(float(prob), 4)
+                record["score"] = int(round(float(scaled_score) * 100))
+                record["raw_prob"] = int(round(float(prob) * 100))
 
         except Exception as exc:
             logger.warning("Ошибка при вызове модели (%s), переключаемся на v0.", exc)
