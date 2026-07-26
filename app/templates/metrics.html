@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Метрики модели | ИИ-отбор тендеров</title>
+  <meta name="description" content="Метрики качества модели ИИ-отбора тендеров: precision, recall, F1, ROC.">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <span class="nav-brand">🎯 ИИ-отбор тендеров</span>
+    <div class="nav-links">
+      <a href="/">Загрузка</a>
+      <a href="/metrics" class="active">Метрики</a>
+    </div>
+    <span class="model-badge {{ 'ml' if using_model else 'v0' }}">
+      {{ 'ML-модель' if using_model else 'Скоринг v0' }}
+    </span>
+  </div>
+</nav>
+
+<header class="page-header">
+  <div class="container">
+    <h1>Метрики модели</h1>
+    <p>{{ model_status }}</p>
+  </div>
+</header>
+
+<div class="container" style="padding-bottom: 60px;">
+
+  {% if error %}
+  <div class="alert alert-warn">
+    <span class="alert-icon">ℹ️</span>
+    <div>{{ error }}</div>
+  </div>
+
+  <!-- Объяснение для случая когда модели нет -->
+  <div class="alert alert-info" style="margin-top:16px;">
+    <span class="alert-icon">💡</span>
+    <div>
+      Сейчас используется базовый скоринг v0 (без обучения).
+      Как только Даша обучит модель и положит <code>pipeline.joblib</code> и
+      <code>metrics.json</code> в папку <code>models/</code>, здесь появятся
+      реальные метрики.
+    </div>
+  </div>
+
+  <div class="alert alert-info" style="margin-top:16px;">
+    <span class="alert-icon">🎯</span>
+    <div>
+      <strong>Целевая метрика: Recall ≥ 0.85</strong><br>
+      Из всех закупок, которые Мария сочла бы интересными,
+      модель должна поймать хотя бы 85%.
+    </div>
+  </div>
+
+  {% elif metrics %}
+
+  <!-- Основные метрики -->
+  <div class="metrics-grid">
+    {% if metrics.recall is defined %}
+    <div class="metric-card">
+      <div class="metric-label">Recall</div>
+      <div class="metric-value">{{ "%.0f"|format(metrics.recall * 100) }}%</div>
+      <div class="metric-sub">Цель: ≥ 85%</div>
+    </div>
+    {% endif %}
+    {% if metrics.precision is defined %}
+    <div class="metric-card">
+      <div class="metric-label">Precision</div>
+      <div class="metric-value">{{ "%.0f"|format(metrics.precision * 100) }}%</div>
+      <div class="metric-sub">Точность</div>
+    </div>
+    {% endif %}
+    {% if metrics.f1 is defined %}
+    <div class="metric-card">
+      <div class="metric-label">F1-Score</div>
+      <div class="metric-value">{{ "%.0f"|format(metrics.f1 * 100) }}%</div>
+      <div class="metric-sub">Гармоническое среднее</div>
+    </div>
+    {% endif %}
+    {% if metrics.roc_auc is defined %}
+    <div class="metric-card">
+      <div class="metric-label">ROC-AUC</div>
+      <div class="metric-value">{{ "%.3f"|format(metrics.roc_auc) }}</div>
+      <div class="metric-sub">Площадь под кривой</div>
+    </div>
+    {% endif %}
+    {% if metrics.threshold is defined %}
+    <div class="metric-card">
+      <div class="metric-label">Порог</div>
+      <div class="metric-value">{{ "%.2f"|format(metrics.threshold) }}</div>
+      <div class="metric-sub">При recall 0.85</div>
+    </div>
+    {% endif %}
+    {% if metrics.train_size is defined %}
+    <div class="metric-card">
+      <div class="metric-label">Размер выборки</div>
+      <div class="metric-value">{{ metrics.train_size }}</div>
+      <div class="metric-sub">строк для обучения</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Топ признаков -->
+  {% if metrics.feature_importance %}
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:28px; margin-bottom:24px;">
+    <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:20px;">Важность признаков</h2>
+    <table class="features-table" style="width:100%; border-collapse:collapse;">
+      <tbody>
+        {% set max_imp = metrics.feature_importance[0].importance %}
+        {% for feat in metrics.feature_importance[:15] %}
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:10px 14px; width:220px;">{{ feat.feature }}</td>
+          <td style="padding:10px 14px;">
+            <div class="feat-bar" data-width="{{ (feat.importance / max_imp * 100)|round }}"></div>
+          </td>
+          <td style="padding:10px 14px; text-align:right; color:var(--text2); font-size:.82rem;">
+            {{ "%.4f"|format(feat.importance) }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Матрица ошибок -->
+  {% if metrics.confusion_matrix %}
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:28px;">
+    <h2 style="font-size:1.1rem; font-weight:700; margin-bottom:20px;">Матрица ошибок</h2>
+    <div style="display:grid; grid-template-columns:auto auto; gap:8px; max-width:320px;">
+      {% set cm = metrics.confusion_matrix %}
+      <div style="background:rgba(111,207,151,.15); border:1px solid rgba(111,207,151,.3); border-radius:8px; padding:20px; text-align:center;">
+        <div style="font-size:1.8rem; font-weight:700; color:var(--green);">{{ cm.tn }}</div>
+        <div style="font-size:.78rem; color:var(--text2); margin-top:4px;">TN — верно отклонены</div>
+      </div>
+      <div style="background:rgba(235,87,87,.12); border:1px solid rgba(235,87,87,.3); border-radius:8px; padding:20px; text-align:center;">
+        <div style="font-size:1.8rem; font-weight:700; color:var(--red);">{{ cm.fp }}</div>
+        <div style="font-size:.78rem; color:var(--text2); margin-top:4px;">FP — лишние</div>
+      </div>
+      <div style="background:rgba(235,87,87,.12); border:1px solid rgba(235,87,87,.3); border-radius:8px; padding:20px; text-align:center;">
+        <div style="font-size:1.8rem; font-weight:700; color:var(--red);">{{ cm.fn }}</div>
+        <div style="font-size:.78rem; color:var(--text2); margin-top:4px;">FN — пропущены</div>
+      </div>
+      <div style="background:rgba(111,207,151,.15); border:1px solid rgba(111,207,151,.3); border-radius:8px; padding:20px; text-align:center;">
+        <div style="font-size:1.8rem; font-weight:700; color:var(--green);">{{ cm.tp }}</div>
+        <div style="font-size:.78rem; color:var(--text2); margin-top:4px;">TP — верно найдены</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% endif %}
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ИИ-отбор тендеров | Загрузка файла</title>
+  <meta name="description" content="Загрузите ежедневную выгрузку из Контур.Закупки и получите список закупок, отсортированных по релевантности.">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <span class="nav-brand">🎯 ИИ-отбор тендеров</span>
+    <div class="nav-links">
+      <a href="/" class="active">Загрузка</a>
+      <a href="/metrics">Метрики</a>
+    </div>
+    <span class="model-badge {{ 'ml' if using_model else 'v0' }}">
+      {{ 'ML-модель' if using_model else 'Скоринг v0' }}
+    </span>
+  </div>
+</nav>
+
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Анализируем закупки…</div>
+</div>
+
+<header class="page-header">
+  <div class="container">
+    <h1>Загрузите выгрузку из Контур.Закупки</h1>
+    <p>Файл будет разобран и отсортирован по вероятности «это интересно»</p>
+  </div>
+</header>
+
+<section class="upload-section">
+  <div class="container">
+
+    {% if error %}
+    <div class="alert alert-error" style="max-width:620px;margin:0 auto 20px;">
+      <span class="alert-icon">⚠️</span>
+      <div>{{ error }}</div>
+    </div>
+    {% endif %}
+
+    {% if warn %}
+    <div class="alert alert-warn" style="max-width:620px;margin:0 auto 20px;">
+      <span class="alert-icon">ℹ️</span>
+      <div>{{ warn }}</div>
+    </div>
+    {% endif %}
+
+    <div class="upload-card">
+
+      <form method="post" action="/upload" enctype="multipart/form-data" id="upload-form">
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" name="file" id="file-input" accept=".xlsx">
+          <span class="drop-icon">📊</span>
+          <div class="drop-title">Перетащите xlsx-файл сюда</div>
+          <div class="drop-sub">или нажмите для выбора</div>
+          <div class="file-selected" id="file-selected"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+          ⚡ Запустить анализ
+        </button>
+      </form>
+
+      <div style="margin-top:28px; padding-top:20px; border-top:1px solid var(--border);">
+        <div style="font-size:.82rem; color:var(--text2); margin-bottom:10px; font-weight:600;">
+          Что должно быть в файле:
+        </div>
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:6px;">
+          {% for col in ['Номер', 'Название', 'ЭТП', 'Тип торгов', 'Способ отбора', 'Регион'] %}
+          <li style="font-size:.82rem; color:var(--text2); display:flex; align-items:center; gap:8px;">
+            <span style="color:var(--green);">✓</span> {{ col }}
+          </li>
+          {% endfor %}
+        </ul>
+        <div style="margin-top:12px; font-size:.78rem; color:var(--text3);">
+          Используется формат выгрузки из Контур.Закупки (двухстрочный заголовок).
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

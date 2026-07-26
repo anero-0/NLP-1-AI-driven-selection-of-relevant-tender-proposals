@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Результаты анализа | ИИ-отбор тендеров</title>
+  <meta name="description" content="Список закупок, отсортированных по релевантности моделью ИИ.">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="container">
+    <span class="nav-brand">🎯 ИИ-отбор тендеров</span>
+    <div class="nav-links">
+      <a href="/">Загрузка</a>
+      <a href="/metrics">Метрики</a>
+    </div>
+    <span class="model-badge {{ 'ml' if using_model else 'v0' }}">
+      {{ 'ML-модель' if using_model else 'Скоринг v0' }}
+    </span>
+  </div>
+</nav>
+
+<div class="container">
+
+  {% if warn %}
+  <div class="alert alert-warn" style="margin-top:20px;">
+    <span class="alert-icon">ℹ️</span>
+    <div>{{ warn }}</div>
+  </div>
+  {% endif %}
+
+  <div class="results-header">
+    <div>
+      <h1>Результаты анализа</h1>
+      <div class="results-meta">
+        Найдено <strong>{{ total }}</strong> закупок,
+        показано <strong id="shown-counter">{{ shown }}</strong>
+      </div>
+    </div>
+    <div class="results-actions">
+      <a href="/" class="btn btn-outline">← Загрузить новый файл</a>
+      <a href="/download?sid={{ sid }}" class="btn btn-success">⬇ Скачать xlsx</a>
+    </div>
+  </div>
+
+  <!-- Score filter -->
+  <div class="filter-bar">
+    <label for="score-slider">Мин. балл:</label>
+    <input type="range" id="score-slider" min="0" max="1" step="0.01" value="{{ min_score }}">
+    <span class="score-val" id="score-val">{{ "%.2f"|format(min_score) }}</span>
+  </div>
+
+  {% if records %}
+  <div class="table-wrap">
+    <table id="results-table">
+      <thead>
+        <tr>
+          <th data-col="0">Балл <span class="sort-arrow">↕</span></th>
+          <th data-col="1">Номер <span class="sort-arrow">↕</span></th>
+          <th data-col="2">Название <span class="sort-arrow">↕</span></th>
+          <th data-col="3">НМЦ <span class="sort-arrow">↕</span></th>
+          <th data-col="4">Площадка <span class="sort-arrow">↕</span></th>
+          <th data-col="5">Тип торгов <span class="sort-arrow">↕</span></th>
+          <th data-col="6">Способ отбора <span class="sort-arrow">↕</span></th>
+          <th data-col="7">Регион <span class="sort-arrow">↕</span></th>
+          <th data-col="8">Дедлайн <span class="sort-arrow">↕</span></th>
+          <th data-col="9">Дней <span class="sort-arrow">↕</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in records %}
+        <tr data-score="{{ r.score or 0 }}">
+          <!-- Балл -->
+          <td data-sort="{{ r.score or 0 }}">
+            <span class="score-badge {{ r.score | score_class }}">
+              {{ "%.2f"|format(r.score) if r.score is not none else "—" }}
+            </span>
+          </td>
+
+          <!-- Номер закупки -->
+          <td class="td-number">
+            {% if r.card_url %}
+              <a href="{{ r.card_url }}" target="_blank" rel="noopener" title="Открыть карточку">
+                {{ r.number }}
+              </a>
+            {% else %}
+              {{ r.number }}
+            {% endif %}
+          </td>
+
+          <!-- Название -->
+          <td class="td-name">{{ r.name }}</td>
+
+          <!-- НМЦ -->
+          <td data-sort="{{ r.price or 0 }}">{{ r.price | fmt_price }}</td>
+
+          <!-- Площадка -->
+          <td class="td-platform">
+            {% if r.platform_url %}
+              <a href="{{ r.platform_url }}" target="_blank" rel="noopener" title="Перейти на площадку">
+                {{ r.platform or '—' }}
+              </a>
+            {% else %}
+              {{ r.platform or '—' }}
+            {% endif %}
+          </td>
+
+          <!-- Тип торгов -->
+          <td>{{ r.trade_type or '—' }}</td>
+
+          <!-- Способ отбора -->
+          <td>{{ r.selection_method or '—' }}</td>
+
+          <!-- Регион -->
+          <td>{{ r.region or '—' }}</td>
+
+          <!-- Дедлайн -->
+          <td data-sort="{{ r.deadline.timestamp() if r.deadline else 0 }}">
+            {{ r.deadline | fmt_date }}
+          </td>
+
+          <!-- Дни до дедлайна -->
+          <td data-sort="{{ r.days_to_deadline or 9999 }}"
+              {% if r.days_to_deadline is not none and r.days_to_deadline < 3 %}
+              class="days-urgent" title="Срочно!"
+              {% endif %}>
+            {{ r.days_to_deadline if r.days_to_deadline is not none else '—' }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <p>Нет закупок с таким фильтром. Попробуйте снизить минимальный балл.</p>
+  </div>
+  {% endif %}
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
