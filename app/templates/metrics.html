@@ -37,6 +37,7 @@
     <div>{{ error }}</div>
   </div>
 
+  {% if not using_model %}
   <!-- Объяснение для случая когда модели нет -->
   <div class="alert alert-info" style="margin-top:16px;">
     <span class="alert-icon">💡</span>
@@ -47,6 +48,7 @@
       реальные метрики.
     </div>
   </div>
+  {% endif %}
 
   <div class="alert alert-info" style="margin-top:16px;">
     <span class="alert-icon">🎯</span>

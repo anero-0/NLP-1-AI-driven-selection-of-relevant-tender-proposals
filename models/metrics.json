@@ -1,0 +1,26 @@
+{
+  "recall": 0.92,
+  "precision": 0.411,
+  "f1": 0.567,
+  "roc_auc": 0.908,
+  "threshold": 0.107,
+  "train_size": 1693,
+  "confusion_matrix": {
+    "tn": 308,
+    "fp": 66,
+    "fn": 4,
+    "tp": 46
+  },
+  "feature_importance": [
+    {"feature": "НМЦ (цена)", "importance": 0.342},
+    {"feature": "Дни до дедлайна", "importance": 0.185},
+    {"feature": "Название: 'разработка'", "importance": 0.124},
+    {"feature": "Название: 'по'", "importance": 0.089},
+    {"feature": "Регион: Москва", "importance": 0.076},
+    {"feature": "Способ: Запрос предложений", "importance": 0.051},
+    {"feature": "Название: 'система'", "importance": 0.048},
+    {"feature": "Название: 'модернизация'", "importance": 0.032},
+    {"feature": "Тип торгов: 44-ФЗ", "importance": 0.021},
+    {"feature": "Название: 'внедрение'", "importance": 0.018}
+  ]
+}
